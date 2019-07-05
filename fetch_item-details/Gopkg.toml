@@ -4,8 +4,16 @@
 # for detailed Gopkg.toml documentation.
 
 [[constraint]]
+  name = "github.com/nats-io/go-nats-streaming"
+  version = "0.4.4"
+
+[[constraint]]
   name = "github.com/pkg/errors"
   version = "0.8.1"
+
+[[constraint]]
+  name = "github.com/satori/go.uuid"
+  version = "1.2.0"
 
 [[constraint]]
   branch = "master"

@@ -1,6 +1,9 @@
 package main
 
 import (
+	"fmt"
+	"sort"
+	"flag"
 	"time"
 	"runtime"
 	"encoding/json"
@@ -9,22 +12,17 @@ import (
 	"crypto/x509"
 	"net/http"
 	"crypto/tls"
-	"sort"
-	"flag"
 
+	"github.com/satori/go.uuid"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
-	"github.com/satori/go.uuid"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
-
-	"github.com/krijnrien/microguild/pkg/gw2api"
-	"github.com/krijnrien/microguild/pkg/messages"
-	"github.com/krijnrien/microguild/pkg/utils"
-	"github.com/krijnrien/microguild/pkg/micro_db"
-	"github.com/krijnrien/microguild"
-	"fmt"
 	"google.golang.org/grpc/credentials"
+
+	"github.com/krijnrien/guilddigger/gw2api"
+	"github.com/krijnrien/guilddigger/micro_db"
+	_ "github.com/krijnrien/guilddigger/rpc_resolver"
 )
 
 const (
@@ -43,8 +41,6 @@ const (
 )
 
 var (
-
-
 	// Initializing gw2 api wrapper
 	api = &gw2api.GW2Api{}
 
@@ -64,9 +60,7 @@ var (
 func main() {
 	flag.Parse()
 
-	microguild.Booterino()
-
-	//// Create the client TLS transportCredentials
+	// Create the client TLS transportCredentials
 	transportCredentials, err := credentials.NewClientTLSFromFile("/usr/bin/configs/cert/servercert.pem", "")
 	if err != nil {
 		clientLogger.Fatal("could not load tls cert: %s", err)
@@ -75,15 +69,6 @@ func main() {
 		grpc.WithTransportCredentials(transportCredentials),
 		grpc.WithBalancerName("round_robin"),
 	}
-	//
-	//if *enableLB {
-	//	clientLogger.WithFields(logrus.Fields{
-	//		"scheme": roundrobin.Name,
-	//	}).Info("grpc load balancing scheme")
-	//
-	//	opts = append(opts, grpc.WithBalancerName(roundrobin.Name))
-	//	microguild.RegisterResolver(*serverIPs)
-	//}
 
 	updateMissingItems()
 	ticker := time.NewTicker(1 * time.Hour)
@@ -168,7 +153,7 @@ func updateMissingItems() {
 	// Create fetch commands
 	// List of item ID's to fetch is divided by the set var batch size
 	for i := 0; i < len(IdsListFetched); i += batchSize {
-		batch := IdsListFetched[i:utils.Min(i+batchSize, len(IdsListFetched))]
+		batch := IdsListFetched[i:Min(i+batchSize, len(IdsListFetched))]
 		createItemDetailsFetchCommand(batch)
 	}
 }
@@ -178,7 +163,7 @@ func createItemDetailsFetchCommand(itemIdsList []uint32) {
 		"batch_size": batchSize,
 	}).Debug("fetch command created")
 
-	itemIds := &messages.ItemIdsRequest{
+	itemIds := &ItemIdsRequest{
 		BatchUUID: uuid.NewV4().String(),
 		ItemIds:   itemIdsList,
 	}
@@ -189,7 +174,7 @@ func createItemDetailsFetchCommand(itemIdsList []uint32) {
 	}
 }
 
-func createItemDetailsFetchCommandRPC(itemIds *messages.ItemIdsRequest) error {
+func createItemDetailsFetchCommandRPC(itemIds *ItemIdsRequest) error {
 	conn, err := grpc.Dial(
 		fmt.Sprintf("%s:///%s", exampleScheme, exampleServiceName), opts...
 	)
@@ -198,10 +183,10 @@ func createItemDetailsFetchCommandRPC(itemIds *messages.ItemIdsRequest) error {
 	}
 	defer conn.Close()
 
-	client := messages.NewEventStoreClient(conn)
+	client := NewEventStoreClient(conn)
 	paymentJSON, _ := json.Marshal(itemIds)
 
-	event := &messages.Event{
+	event := &Event{
 		EventId:       uuid.NewV4().String(),
 		EventType:     event,
 		AggregateId:   itemIds.BatchUUID,
@@ -221,3 +206,9 @@ func createItemDetailsFetchCommandRPC(itemIds *messages.ItemIdsRequest) error {
 	}
 }
 
+func Min(a, b int) int {
+	if a <= b {
+		return a
+	}
+	return b
+}

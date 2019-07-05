@@ -25,4 +25,7 @@ Gopkg.lock
 /idea
 idea/
 
+/.idea
+.idea/
+
 configs/cert/

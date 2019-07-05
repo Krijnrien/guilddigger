@@ -1,9 +1,8 @@
-package micro_db
+package persist
 
 import (
 	"database/sql"
 	"fmt"
-	"github.com/krijnrien/microguild/pkg/messages"
 )
 
 var createPriceTableStatements = []string{
@@ -50,14 +49,14 @@ var _ IPriceDatabase = &priceDatabase{}
 const listPriceStatement = `SELECT * FROM price`
 
 // ListItems returns a list of Items, ordered by title.
-func (db *priceDatabase) ListPrices() ([]*messages.Prices, error) {
+func (db *priceDatabase) ListPrices() ([]*Prices, error) {
 	rows, err := db.list.Query()
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	var Items []*messages.Prices
+	var Items []*Prices
 	for rows.Next() {
 		Item, err := scanPrice(rows)
 		if err != nil {
@@ -98,7 +97,7 @@ const InsertPriceStatement = `INSERT INTO price (itemid, fetched_datetime, buys_
 const InsertPriceNowStatement = `INSERT IGNORE INTO price (itemid, fetched_datetime, buys_quantity, buys_unit_price, sells_quantity, sells_unit_price) VALUES (?, now(), ?, ?, ?, ?)`
 
 // CreateItem saves a given Item, assigning it a new ID.
-func (db *priceDatabase) AddPrice(b *messages.Prices) (id int64, addErr error) {
+func (db *priceDatabase) AddPrice(b *Prices) (id int64, addErr error) {
 	r, addErr := execAffectingOneRow(db.insert, b.Id, b.FetchDatetime, b.Buys.Quantity, b.Buys.UnitPrice, b.Sells.Quantity, b.Sells.UnitPrice)
 	if addErr != nil {
 		return 0, addErr
@@ -138,7 +137,7 @@ func (db *priceDatabase) DropPriceTable() (err error) {
 }
 
 // scanItem reads a Item from a sql.Row or sql.Rows
-func scanPrice(s rowScanner) (*messages.Prices, error) {
+func scanPrice(s rowScanner) (*Prices, error) {
 	var (
 		itemid           int
 		fetched_datetime sql.NullString
@@ -151,7 +150,7 @@ func scanPrice(s rowScanner) (*messages.Prices, error) {
 		return nil, err
 	}
 
-	Item := &messages.Prices{
+	Item := &Prices{
 		//Id:             itemid,
 		//Whitelisted: whitelisted,
 		//Fetch_datetime: fetched_datetime.String,

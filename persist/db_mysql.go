@@ -1,10 +1,9 @@
-package micro_db
+package persist
 
 import (
 	"database/sql"
 	"database/sql/driver"
 	"fmt"
-
 	_ "github.com/lib/pq"
 )
 
@@ -126,8 +125,8 @@ func createTable(conn *sql.DB) error {
 		return err
 	}
 
-	for _, createStmts := range createAllTablesStatements {
-		for _, createStmt := range createStmts {
+	for _, createStatements := range createAllTablesStatements {
+		for _, createStmt := range createStatements {
 			_, err := conn.Exec(createStmt)
 			if err != nil {
 				return err

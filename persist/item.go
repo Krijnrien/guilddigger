@@ -1,9 +1,8 @@
-package micro_db
+package persist
 
 import (
 	"database/sql"
 	"fmt"
-	"github.com/krijnrien/microguild/pkg/messages"
 	"github.com/pkg/errors"
 	"strings"
 )
@@ -54,14 +53,14 @@ func (db *MySQLConn) PrepareItemStatements() error {
 const listItemsStatement = `SELECT * FROM item`
 
 // ListItems returns a list of Items, ordered by title.
-func (db *itemDatabase) ListItems() ([]*messages.Item, error) {
+func (db *itemDatabase) ListItems() ([]*Item, error) {
 	rows, err := db.list.Query(listItemsStatement)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	var Items []*messages.Item
+	var Items []*Item
 	for rows.Next() {
 		Item, err := scanItem(rows)
 		if err != nil {
@@ -77,7 +76,7 @@ func (db *itemDatabase) ListItems() ([]*messages.Item, error) {
 const listItemIdsStatement = `SELECT item_id FROM item`
 
 //read item ids
-func (db *itemDatabase) ListItemIds() ([]*messages.ItemResponse, error) {
+func (db *itemDatabase) ListItemIds() ([]*ItemResponse, error) {
 	rows, err := db.listIds.Query()
 	if err != nil {
 		return nil, err
@@ -85,9 +84,9 @@ func (db *itemDatabase) ListItemIds() ([]*messages.ItemResponse, error) {
 	defer rows.Close()
 
 	// Parse all rows into an array of ItemResponse
-	var ItemResponses []*messages.ItemResponse
+	var ItemResponses []*ItemResponse
 	for rows.Next() {
-		itemResponse := messages.ItemResponse{}
+		itemResponse := ItemResponse{}
 		if err = rows.Scan(&itemResponse.ItemId); err == nil {
 			ItemResponses = append(ItemResponses, &itemResponse)
 		}
@@ -96,29 +95,12 @@ func (db *itemDatabase) ListItemIds() ([]*messages.ItemResponse, error) {
 		return nil, errors.Wrap(err, "error on reading all items")
 	}
 	return ItemResponses, nil
-
-	//rows, err := db.listIds.Query()
-	//if err != nil {
-	//	return nil, err
-	//}
-	//defer rows.Close()
-	//
-	//var Items []*messages.Item
-	//for rows.Next() {
-	//	Item, err := scanItem(rows)
-	//	if err != nil {
-	//		return nil, fmt.Errorf("mysql: could not read row: %v", err)
-	//	}
-	//
-	//	Items = append(Items, Item)
-	//}
-	//return Items, nil
 }
 
 const getItemStatement = "SELECT * FROM item WHERE id = ?"
 
 // GetItem retrieves a Item by its ID.
-func (db *itemDatabase) GetItem(id int) (*messages.Item, error) {
+func (db *itemDatabase) GetItem(id int) (*Item, error) {
 	Item, err := scanItem(db.get.QueryRow(id))
 	if err == sql.ErrNoRows {
 		return nil, fmt.Errorf("mysql: could not find Item with id %d", id)
@@ -133,7 +115,7 @@ func (db *itemDatabase) GetItem(id int) (*messages.Item, error) {
 const InsertItemStatement = `INSERT IGNORE INTO item (id, item_name, icon, description, item_type, rarity, item_level, vendorValue) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
 
 // CreateItem saves a given Item, assigning it a new ID.
-func (db *itemDatabase) CreateItem(b *messages.Item) (id int64, err error) {
+func (db *itemDatabase) CreateItem(b *Item) (id int64, err error) {
 	r, err := execAffectingOneRow(db.insert, b.ID, b.Name, b.Description, b.Type, b.Level, b.Rarity, b.VendorValue, b.Icon)
 	if err != nil {
 		return 0, err
@@ -146,7 +128,7 @@ func (db *itemDatabase) CreateItem(b *messages.Item) (id int64, err error) {
 	return lastInsertID, nil
 }
 
-func (db *MySQLConn) BulkCreateItem(unsavedRows []messages.Item) error {
+func (db *MySQLConn) BulkCreateItem(unsavedRows []Item) error {
 	valueStrings := make([]string, 0, len(unsavedRows))
 	valueArgs := make([]interface{}, 0, len(unsavedRows)*8)
 	i := 0
@@ -187,7 +169,7 @@ func (db *itemDatabase) DeleteItem(id int64) error {
 const updateItemStatement = `UPDATE item SET item_id=?, item_name=?, icon=?, description=?, item_type=?, rarity=?, item_level=?, vendorValue=?, WHERE id = ?`
 
 // UpdateItem updates the entry for a given Item.
-func (db *itemDatabase) UpdateItem(b *messages.Item) error {
+func (db *itemDatabase) UpdateItem(b *Item) error {
 	if b.ID == 0 {
 		return errors.New("mysql: Item with unassigned ID passed into updateItem")
 	}
@@ -198,7 +180,7 @@ func (db *itemDatabase) UpdateItem(b *messages.Item) error {
 }
 
 // scanItem reads a Item from a sql.Row or sql.Rows
-func scanItem(s rowScanner) (*messages.Item, error) {
+func scanItem(s rowScanner) (*Item, error) {
 	var (
 		id          uint32
 		name        sql.NullString
@@ -213,7 +195,7 @@ func scanItem(s rowScanner) (*messages.Item, error) {
 		return nil, err
 	}
 
-	Item := &messages.Item{
+	Item := &Item{
 		ID:          id,
 		Name:        name.String,
 		Description: description.String,

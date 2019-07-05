@@ -16,13 +16,14 @@ import (
 	"golang.org/x/net/context"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
+	"github.com/satori/go.uuid"
 	"google.golang.org/grpc/credentials"
 	"github.com/kelseyhightower/envconfig"
 
-
 	"github.com/krijnrien/guilddigger/gw2api"
 	"github.com/krijnrien/guilddigger/nats"
-	"github.com/krijnrien/guilddigger/rpc_resolver"
+	"github.com/nats-io/go-nats-streaming"
+	_ "github.com/krijnrien/guilddigger/rpc_resolver"
 )
 
 const (
@@ -68,8 +69,6 @@ type Config struct {
 
 func main() {
 	flag.Parse()
-
-	rpc_resolver.Booterino()
 
 	// Create the client TLS transportCredentials
 	transportCredentials, err := credentials.NewClientTLSFromFile("/usr/bin/configs/cert/servercert.pem", "")

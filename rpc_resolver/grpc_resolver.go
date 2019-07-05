@@ -2,18 +2,14 @@ package rpc_resolver
 
 import "google.golang.org/grpc/resolver"
 
-
-
-
 //TODO
 // expose ports which can add an address to the address list and then call UpdateState (aka dynamically adding new server locations to already running clients)
 
-
 // Following is an example name resolver implementation. Read the name
 // resolution example to learn more about it.
-const(
-exampleScheme      = "example"
-exampleServiceName = "www.example.com"
+const (
+	exampleScheme      = "example"
+	exampleServiceName = "www.example.com"
 )
 
 var addrs = []string{"192.168.56.1:50051", "192.168.56.1:50052"}
@@ -50,8 +46,6 @@ func (r *exampleResolver) start() {
 func (*exampleResolver) ResolveNow(o resolver.ResolveNowOption) {}
 func (*exampleResolver) Close()                                 {}
 
-func Booterino() {
+func init() {
 	resolver.Register(&ExampleResolverBuilder{})
 }
-
-

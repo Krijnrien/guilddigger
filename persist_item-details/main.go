@@ -1,16 +1,15 @@
 package main
 
 import (
-	"encoding/json"
+	"fmt"
 	"log"
 	"runtime"
+	"encoding/json"
 
 	"github.com/nats-io/go-nats-streaming"
 
-	"fmt"
-	"github.com/krijnrien/microguild/pkg/messages"
-	"github.com/krijnrien/microguild/pkg/micro_db"
-	"github.com/krijnrien/microguild/pkg/nats"
+	"github.com/krijnrien/guilddigger/micro_db"
+	"github.com/krijnrien/guilddigger/nats"
 )
 
 const (
@@ -51,11 +50,11 @@ func main() {
 
 	_, err2 := sc.QueueSubscribe(channel, queueGroup, func(msg *stan.Msg) {
 		log.Printf("[Orer] %s", string(msg.Data))
-		var order messages.ItemBatch
+		var order ItemBatch
 		err := json.Unmarshal(msg.Data, &order)
 
 		if err == nil {
-			var item []messages.Item
+			var item []Item
 			err := json.Unmarshal(order.ItemData, &item)
 			if err == nil {
 				// Handle the message
