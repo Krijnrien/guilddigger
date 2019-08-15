@@ -1,0 +1,17 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-item-details-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      run: order-item-details
+  template:
+    metadata:
+      labels:
+        run: order-item-details
+    spec:
+      containers:
+      - name: order-item-details
+        image: gcr.io/guilddigger/order-item-details:latest

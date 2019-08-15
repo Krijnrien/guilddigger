@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: event-store
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      run: event-store
+  template:
+    metadata:
+      labels:
+        run: event-store
+    spec:
+      containers:
+      - name: event-store
+        image: gcr.io/guilddigger/event-store
+        ports:
+          - containerPort: 50051

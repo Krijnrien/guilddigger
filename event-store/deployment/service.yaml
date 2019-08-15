@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: event-store
+  labels:
+    run: event-store
+spec:
+  ports:
+  - port: 50051
+  selector:
+    run: event-store

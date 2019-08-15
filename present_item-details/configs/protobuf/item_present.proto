@@ -1,0 +1,6 @@
+syntax = "proto3";
+package main;
+
+message ItemOrder {
+     uint32 item_id = 1;
+}

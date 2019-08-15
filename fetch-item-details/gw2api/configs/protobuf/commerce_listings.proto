@@ -1,0 +1,26 @@
+syntax = "proto3";
+package gw2api;
+
+// ArticleListing includes the id of the listing and a list of buys and sells
+message Listings {
+    uint32 id = 1;
+
+    // Listing includes number of listings at the unit price with respective quantity
+    message BUYS {
+        uint32 listings = 1;
+        uint32 unit_price = 2;
+        uint32 quantity = 3;
+    }
+
+    repeated BUYS buys = 2;
+
+    // Listing includes number of listings at the unit price with respective quantity
+    message SELLS {
+        uint32 listings = 1;
+        uint32 unit_price = 2;
+        uint32 quantity = 3;
+    }
+
+    repeated SELLS sells = 3;
+}
+

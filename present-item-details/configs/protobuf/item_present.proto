@@ -1,0 +1,34 @@
+syntax = "proto3";
+package main;
+
+import "google/protobuf/empty.proto";
+
+
+service ItemPresent {
+    // Create a new event to the event store
+    rpc getItems (google.protobuf.Empty) returns (stream Item) {
+    }
+    // Get all events for the given aggregate and event
+    rpc GetItemIds (google.protobuf.Empty) returns (stream ItemIds) {
+    }
+}
+
+
+message Item {
+    uint32 ID = 1;
+    string Name = 2;
+    string Icon = 3;
+    string Description = 4;
+    string Type = 5;
+    string Rarity = 6;
+    uint32 Level = 7;
+    uint32 VendorValue = 8;
+}
+
+message ItemIdFilter {
+    uint32 item_id = 1;
+}
+
+message ItemIds {
+    uint32 item_id = 1;
+}

@@ -1,0 +1,14 @@
+syntax = "proto3";
+package main;
+
+import "google/protobuf/empty.proto";
+
+service ItemPresent {
+     // Get all events for the given aggregate and event
+     rpc GetItemIds (google.protobuf.Empty) returns (stream ItemIds) {
+     }
+}
+
+message ItemIds {
+     uint32 item_id = 1;
+}
